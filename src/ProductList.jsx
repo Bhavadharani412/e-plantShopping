@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { addItem } from './CartSlice';
 import './ProductList.css';
 import CartItem from './CartItem';
@@ -8,10 +8,12 @@ import CartItem from './CartItem';
 function ProductList({ onHomeClick }) {
     const [showCart, setShowCart] = useState(false);
     const [showPlants, setShowPlants] = useState(false);
+    const [addedToCart, setAddedToCart] = useState({});
 
     const dispatch = useDispatch();
 
-    const [addedToCart, setAddedToCart] = useState({});
+    // Get cart items from Redux store
+    const CartItems = useSelector(state => state.cart.items);
 
     const plantsArray = [
         {
@@ -244,6 +246,14 @@ function ProductList({ onHomeClick }) {
         textDecoration: 'none',
     };
 
+    // Calculate total quantity of all products in cart
+    const calculateTotalQuantity = () => {
+        return CartItems.reduce(
+            (total, item) => total + item.quantity,
+            0
+        );
+    };
+
     const handleHomeClick = (e) => {
         e.preventDefault();
         onHomeClick();
@@ -265,12 +275,13 @@ function ProductList({ onHomeClick }) {
         setShowCart(false);
     };
 
-    const handleAddToCart = (product) => {
+    // Add plant to Redux cart
+    const handleAddToCart = (product, buttonKey) => {
         dispatch(addItem(product));
 
         setAddedToCart((prevState) => ({
             ...prevState,
-            [product.name]: true,
+            [buttonKey]: true,
         }));
     };
 
@@ -318,7 +329,6 @@ function ProductList({ onHomeClick }) {
                                 <svg
                                     xmlns="http://www.w3.org/2000/svg"
                                     viewBox="0 0 256 256"
-                                    id="IconChangeColor"
                                     height="68"
                                     width="68"
                                 >
@@ -336,9 +346,12 @@ function ProductList({ onHomeClick }) {
                                         strokeLinecap="round"
                                         strokeLinejoin="round"
                                         strokeWidth="2"
-                                        id="mainIconPathAttribute"
                                     />
                                 </svg>
+
+                                <span className="cart-count">
+                                    {calculateTotalQuantity()}
+                                </span>
                             </h1>
                         </a>
                     </div>
@@ -352,40 +365,44 @@ function ProductList({ onHomeClick }) {
                             <h1>{category.category}</h1>
 
                             <div className="product-list">
-                                {category.plants.map((plant, index) => (
-                                    <div
-                                        className="product-card"
-                                        key={`${category.category}-${index}`}
-                                    >
-                                        <img
-                                            className="product-image"
-                                            src={plant.image}
-                                            alt={plant.name}
-                                        />
+                                {category.plants.map((plant, index) => {
+                                    const buttonKey = `${category.category}-${plant.name}`;
 
-                                        <div className="product-title">
-                                            {plant.name}
-                                        </div>
-
-                                        <div className="product-description">
-                                            {plant.description}
-                                        </div>
-
-                                        <div className="product-cost">
-                                            {plant.cost}
-                                        </div>
-
-                                        <button
-                                            className="product-button"
-                                            onClick={() => handleAddToCart(plant)}
-                                            disabled={addedToCart[plant.name]}
+                                    return (
+                                        <div
+                                            className="product-card"
+                                            key={`${category.category}-${index}`}
                                         >
-                                            {addedToCart[plant.name]
-                                                ? 'Added to Cart'
-                                                : 'Add to Cart'}
-                                        </button>
-                                    </div>
-                                ))}
+                                            <img
+                                                className="product-image"
+                                                src={plant.image}
+                                                alt={plant.name}
+                                            />
+
+                                            <div className="product-title">
+                                                {plant.name}
+                                            </div>
+
+                                            <div className="product-description">
+                                                {plant.description}
+                                            </div>
+
+                                            <div className="product-cost">
+                                                {plant.cost}
+                                            </div>
+
+                                            <button
+                                                className="product-button"
+                                                onClick={() => handleAddToCart(plant, buttonKey)}
+                                                disabled={addedToCart[buttonKey]}
+                                            >
+                                                {addedToCart[buttonKey]
+                                                    ? 'Added to Cart'
+                                                    : 'Add to Cart'}
+                                            </button>
+                                        </div>
+                                    );
+                                })}
                             </div>
                         </div>
                     ))}
