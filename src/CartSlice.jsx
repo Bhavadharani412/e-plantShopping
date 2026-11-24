@@ -9,49 +9,58 @@ export const CartSlice = createSlice({
     },
 
     reducers: {
+        // Add a plant to the cart
         addItem: (state, action) => {
-            const product = action.payload;
+            const { name, image, cost } = action.payload;
 
+            // Check whether the plant already exists
             const existingItem = state.items.find(
-                (item) => item.name === product.name
+                (item) => item.name === name
             );
 
             if (existingItem) {
-                existingItem.quantity += 1;
+                // Increase quantity if the plant already exists
+                existingItem.quantity++;
             } else {
+                // Add new plant with quantity 1
                 state.items.push({
-                    ...product,
+                    name,
+                    image,
+                    cost,
                     quantity: 1,
                 });
             }
         },
 
+        // Remove a plant from the cart
         removeItem: (state, action) => {
             state.items = state.items.filter(
                 (item) => item.name !== action.payload
             );
         },
 
+        // Update the quantity of a plant
         updateQuantity: (state, action) => {
             const { name, quantity } = action.payload;
 
-            const item = state.items.find(
+            // Find the plant in the cart
+            const itemToUpdate = state.items.find(
                 (item) => item.name === name
             );
 
-            if (item) {
-                if (quantity <= 0) {
-                    state.items = state.items.filter(
-                        (item) => item.name !== name
-                    );
-                } else {
-                    item.quantity = quantity;
-                }
+            if (itemToUpdate) {
+                itemToUpdate.quantity = quantity;
             }
         },
     },
 });
 
-export const { addItem, removeItem, updateQuantity } = CartSlice.actions;
+// Export action creators
+export const {
+    addItem,
+    removeItem,
+    updateQuantity,
+} = CartSlice.actions;
 
+// Export reducer
 export default CartSlice.reducer;
